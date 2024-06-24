@@ -3,15 +3,14 @@ package com.bezina.PDFsplitter;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.File;
@@ -19,9 +18,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -29,7 +25,7 @@ import java.util.stream.IntStream;
 /**
  * JavaFX PDFSplitterApplication
  */
-@SpringBootApplication
+//@SpringBootApplication
 public class PDFSplitterApplication extends Application {
 
     private File selectedFile;
@@ -102,8 +98,12 @@ public class PDFSplitterApplication extends Application {
         if (selectedDirectory != null) {
             try {
                 List<Integer> pages = parsePages(pagesText);
-                PDFSplitter.splitPdf(selectedFile, pages, selectedDirectory.getAbsolutePath(), nameTemplate);
-                messageLabel.setText("Files saved successfully");
+                if (!pages.isEmpty()) {
+                    PDFSplitter.splitPdf(selectedFile, pages, selectedDirectory.getAbsolutePath(), nameTemplate);
+                    messageLabel.setText("Files saved successfully");
+                } else{
+                    showAlert("Something went wrong");
+                    messageLabel.setText("Files weren't save. Check pages interval");}
             } catch (IOException e) {
                 e.printStackTrace();
                 messageLabel.setText("Error saving files");
@@ -128,21 +128,32 @@ public class PDFSplitterApplication extends Application {
                             String[] bounds = range.split("-");
                             int start = Integer.parseInt(bounds[0]);
                             int end = Integer.parseInt(bounds[1]);
-                            if (start > 0 && end > 0 && start <= end) {
-                                return IntStream.rangeClosed(start, end).boxed();
+                            if ( (start > 0) && (end >0 )){
+                                if ((start > end)){
+                                    return IntStream.rangeClosed( end,start).boxed();
+                                }
+                                else return IntStream.rangeClosed( start,end).boxed();
                             }
-                            int page = Integer.parseInt(range);
-                            if (page > 0) {
-                                return IntStream.of(page).boxed();
-                            }
+                               else {
+                                    throw new NumberFormatException();
+                               }
+                        } else {
+                            return IntStream.of(Integer.parseInt(range)).boxed();
                         }
-                        return IntStream.empty().boxed();
                     })
                     .collect(Collectors.toList());
         }
         catch (NumberFormatException e) {
                 return Collections.emptyList();
             }
+    }
+
+    public static void showAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Information");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     public static void main(String[] args) {

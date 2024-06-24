@@ -1,0 +1,6 @@
+com\bezina\PDFsplitter\PDFSplitterCommandLineRunner.class
+com\bezina\PDFsplitter\PDFFileChooser.class
+com\bezina\PDFsplitter\PDFSplitterApplication.class
+module-info.class
+com\bezina\PDFsplitter\PDFSplitter.class
+com\bezina\PDFsplitter\SystemInfo.class
